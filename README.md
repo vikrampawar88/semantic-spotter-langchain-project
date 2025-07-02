@@ -1,126 +1,67 @@
-# Semantic Spotter Project
+# Semantic Spotter: A RAG-based Insurance Search System
 
-## 1. Background
+## 1. Overview
 
-This project demonstrate "Build a RAG System" in insurance domain
-using  [LangChain](https://python.langchain.com/docs/introduction/).
+This project showcases how to build a Retrieval-Augmented Generation (RAG) system tailored to the insurance industry using [LangChain](https://python.langchain.com/docs/introduction/).
 
-## 2. Problem Statement
+## 2. Objective
 
-The goal of the project is to build a robust generative search system capable of effectively and accurately
-answering questions from a bunch of policy documents.
+The primary aim is to develop a powerful generative search engine that can accurately respond to queries by referencing information from various insurance policy documents.
 
-## 3. Document
+## 3. Data Source
 
-1. The policy documents can be found [here](./Policy+Documents)
+The policy documents used for this project are located in the [Policy_Documents](./Policy_Documents) directory.
 
-## 4. Approach
+## 4. Methodology
 
-LangChain is a framework that simplifies the development of LLM applications LangChain offers a suite of tools,
-components, and interfaces that simplify the construction of LLM-centric applications. LangChain enables developers to
-build applications that can generate creative and contextually relevant content LangChain provides an LLM class designed
-for interfacing with various language model providers, such as OpenAI, Cohere, and Hugging Face.
+LangChain is an open-source framework that simplifies the process of creating applications powered by large language models (LLMs). It provides a variety of tools, integrations, and abstractions to streamline development.
 
-LangChain's versatility and flexibility enable seamless integration with various data sources, making it a comprehensive
-solution for creating advanced language model-powered applications.
+LangChain supports both Python and JavaScript/TypeScript, emphasizing a modular and composable architecture. With built-in support for different LLMs (like OpenAI, Cohere, Hugging Face), it enables developers to rapidly build and customize intelligent applications that can pull context from external sources.
 
-LangChain's open-source framework is available to build applications in Python or JavaScript/TypeScript. Its core design
-principle is composition and modularity. By combining modules and components, one can quickly build complex LLM-based
-applications. LangChain is an open-source framework that makes it easier to build powerful and personalizeable
-applications with LLMs relevant to user’s interests and needs. It connects to external systems to access information
-required to solve complex problems. It provides abstractions for most of the functionalities needed for building an LLM
-application and also has integrations that can readily read and write data, reducing the development speed of the
-application. LangChains's framework allows for building applications that are agnostic to the underlying language model.
-With its ever expanding support for various LLMs, LangChain offers a unique value proposition to build applications and
-iterate continuously.
+### Key Components of LangChain:
 
-LangChain framework consists of the following:
+- **LLM Interfaces**: Abstractions to interact with different LLM providers
+- **Chains**: Sequences of calls and logic used to handle specific tasks
+- **Retrievers**: Retrieve documents based on user queries
+- **Agents**: Choose tools dynamically based on task requirements
+- **Memory**: Maintain state across interactions
+- **Callbacks**: Capture logs or intermediate outputs during execution
 
-- **Components**: LangChain provides modular abstractions for the components necessary to work with language models.
-  LangChain also has collections of implementations for all these abstractions. The components are designed to be easy
-  to use, regardless of whether you are using the rest of the LangChain framework or not.
-- **Use-Case Specific Chains**: Chains can be thought of as assembling these components in particular ways in order to
-  best accomplish a particular use case. These are intended to be a higher level interface through which people can
-  easily get started with a specific use case. These chains are also designed to be customizable.
+LangChain includes both low-level components (like document loaders and vector stores) and high-level pre-built chains for specific use cases, allowing flexibility and ease of use.
 
-The LangChain framework revolves around the following building blocks:
+## 5. Implementation Layers
 
-* Model I/O: Interface with language models (LLMs & Chat Models, Prompts, Output Parsers)
-* Retrieval: Interface with application-specific data (Document loaders, Document transformers, Text embedding models,
-  Vector stores, Retrievers)
-* Chains: Construct sequences/chains of LLM calls
-* Memory: Persist application state between runs of a chain
-* Agents: Let chains choose which tools to use given high-level directives
-* Callbacks: Log and stream intermediate steps of any chain
+- **PDF Reading & Parsing**: Policy documents are ingested using LangChain's [PyPDFDirectoryLoader](https://python.langchain.com/api_reference/community/document_loaders/langchain_community.document_loaders.pdf.PyPDFDirectoryLoader.html), which processes all PDF files in a specified folder.
 
-## 5. System Layers
+- **Chunking Documents**: To enhance retrieval effectiveness, documents are split using [RecursiveCharacterTextSplitter](https://python.langchain.com/docs/how_to/recursive_text_splitter/), which maintains semantic cohesion by splitting based on a prioritized list of separators (e.g., paragraph breaks, sentences, words).
 
-- **Reading & Processing PDF Files:** We will be
-  using
-  LangChain [PyPDFDirectoryLoader](https://python.langchain.com/api_reference/community/document_loaders/langchain_community.document_loaders.pdf.PyPDFDirectoryLoader.html)
-  to read and process the PDF files from specified directory.
+- **Text Embeddings**: Embeddings are created using LangChain’s [OpenAIEmbeddings](https://python.langchain.com/docs/integrations/text_embedding/openai/) integration. These embeddings convert text into vector format, allowing similarity comparisons and semantic search.
 
-- **Document Chunking:**  We will be
-  using LangChain [RecursiveCharacterTextSplitter](https://python.langchain.com/docs/how_to/recursive_text_splitter/).
-  This text
-  splitter is the recommended one for generic text. It is parameterized by a list of
-  characters. It tries to split on them in order until the chunks are small enough. The default list
-  is ["\n\n", "\n", " ", ""]. This has the effect of trying to keep all paragraphs (and then sentences, and then words)
-  together as long as possible, as those would generically seem to be the strongest semantically related pieces of
-  text..
+- **Embedding Storage**: The generated embeddings are stored in [ChromaDB](https://docs.trychroma.com/), utilizing LangChain's [CacheBackedEmbeddings](https://python.langchain.com/api_reference/langchain/embeddings/langchain.embeddings.cache.CacheBackedEmbeddings.html) for efficient reuse and performance.
 
-- **Generating Embeddings:**  We will be
-  using [OpenAIEmbeddings](https://python.langchain.com/docs/integrations/text_embedding/openai/) from LangChain
-  package. The Embeddings class
-  is a class designed for interfacing with text embedding models.
-  LangChain provides support for most of the embedding model providers (OpenAI, Cohere) including sentence transformers
-  library from Hugging Face. Embeddings create a vector representation of a piece of text and supports all the
-  operations such as similarity search, text comparison, sentiment analysis etc. The base Embeddings class in LangChain
-  provides two methods: one for embedding documents and one for embedding a query.
+- **Retriever Mechanism**: Retrievers serve as interfaces that fetch relevant documents in response to natural language queries. This project uses the [VectorStoreRetriever](https://python.langchain.com/api_reference/core/vectorstores/langchain_core.vectorstores.base.VectorStoreRetriever.html) to connect with the vector store.
 
-- **Store Embeddings In ChromaDB:** In this section we will store embedding in ChromaDB. This embedding is backed by
-  LangChain [CacheBackedEmbeddings](https://python.langchain.com/api_reference/langchain/embeddings/langchain.embeddings.cache.CacheBackedEmbeddings.html)
+- **Re-Ranking with Cross Encoders**: To improve the quality of the search results, the retrieved documents are re-ranked using a cross-encoder model ([BAAI/bge-reranker-base](https://huggingface.co/BAAI/bge-reranker-base)) via LangChain’s [HuggingFaceCrossEncoder](https://python.langchain.com/api_reference/community/cross_encoders/langchain_community.cross_encoders.huggingface.HuggingFaceCrossEncoder.html).
 
-- **Retrievers:** Retrievers provide Easy way to combine documents with language models.A retriever is an interface that
-  returns documents given an unstructured query. It is more general than a vector store. A retriever does not need to be
-  able to store documents, only to return (or retrieve) them. Retriever stores data for it to be queried by a language
-  model. It provides an interface that will return documents based on an unstructured query. Vector stores can be used
-  as the backbone of a retriever, but there are other types of retrievers as well. There are many different types of
-  retrievers, the most widely supported is
-  the [VectoreStoreRetriever](https://python.langchain.com/api_reference/core/vectorstores/langchain_core.vectorstores.base.VectorStoreRetriever.html).
+- **RAG Chains**: LangChain chains are used to link all components—embedding, retrieval, re-ranking, and LLM generation. A pre-built prompt template from LangChain Hub, `rlm/rag-promp`, is used within the RAG pipeline.
 
-- **Re-Ranking with a Cross Encoder:** Re-ranking the results obtained from the semantic search will sometime
-  significantly improve the relevance of the retrieved results. This is often done by passing the query paired with each
-  of the retrieved responses into a cross-encoder to score the relevance of the response w.r.t. the query. The above
-  retriever is associated
-  with [HuggingFaceCrossEncoder](https://python.langchain.com/api_reference/community/cross_encoders/langchain_community.cross_encoders.huggingface.HuggingFaceCrossEncoder.html)
-  with model BAAI/bge-reranker-base
+## 6. Architecture Overview
 
-- **Chains:** LangChain provides Chains that can be used to combine multiple components together to create a single,
-  coherent application. For example, we can create a chain that takes user input, formats it with a PromptTemplate, and
-  then passes the formatted response to an LLM. We can build more complex chains by combining multiple chains together,
-  or by combining chains with other components. We are using pulling prompt <b>rlm/rag-promp</b> from langchain hub to
-  use in RAG chain.
+![Architecture 1](./images/arch1.png)  
+![Architecture 2](./images/arch2.png)
 
-## 6. System Architecture
+## 7. Requirements
 
-![](./images/arch1.png)
-![](./images/arch2.png)
+- Python ≥ 3.7
+- langchain == 0.3.13
+- An OpenAI API key placed in a text file named `API_Key.txt` for authentication with the LLM service
 
-## 7. Prerequisites
+## 8. How to Run the Project
 
-- Python 3.7+
-- langchain 0.3.13
-- Please ensure that you add your OpenAI API key to the empty text file named "OpenAI_API_Key.txt" in order to access
-  the
-  OpenAI API.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/vikrampawar88/semantic-spotter-langchain-project.git
+2. Open the Jupyter notebook:
+semantic-spotter-langchain-project.ipynb
 
-## 8. Running
-
-- Clone the github repository
-  ```shell
-  $ git clone https://github.com/vikrampawar88/semantic-spotter-langchain-project.git
-  ```
-- Open
-  the [notebook](https://github.com/vikrampawar88/semantic-spotter-langchain-project/blob/main/semantic-spotter-langchain-project.ipynb)
-  in jupyter and run all cells.
+3. Run all the cells to execute the pipeline.
